@@ -1,11 +1,11 @@
-import { Person } from 'entities/person.entity';
+import { User } from 'entities/users.entity';
 
-export interface AccessTokenPayload extends Partial<Person> {
+export interface AccessTokenPayload extends Partial<User> {
   username: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  avatar: string;
+  // firstName: string;
+  // lastName: string;
+  // avatar: string;
   id: number;
   iat?: number;
   exp?: number;

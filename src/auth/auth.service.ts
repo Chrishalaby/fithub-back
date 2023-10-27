@@ -9,8 +9,8 @@ import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Person } from 'entities/person.entity';
-import { PersonService } from 'src/person/person.service';
+import { User } from 'entities/users.entity';
+import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { LoginDto } from './dto/create-auth.dto';
 import { EmailDto } from './dto/email.dto';
@@ -20,15 +20,15 @@ import { AccessToken, AccessTokenPayload } from './models/access-token.model';
 export class AuthService {
   public constructor(
     private readonly jwtService: JwtService,
-    private readonly personService: PersonService,
+    private readonly usersService: UsersService,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-    @InjectRepository(Person)
-    private readonly personRepository: Repository<Person>,
+    @InjectRepository(User)
+    private readonly personRepository: Repository<User>,
   ) {}
 
   async jwtLogin(loginDetails: LoginDto): Promise<AccessToken> {
-    const person: Person | null = await this.personService.findOne({
+    const person: User | null = await this.usersService.findOne({
       where: { username: loginDetails.username },
     });
 
@@ -40,9 +40,9 @@ export class AuthService {
       const payload: AccessTokenPayload = {
         username: person?.username,
         email: person?.email,
-        firstName: person?.firstName,
-        lastName: person?.lastName,
-        avatar: person?.avatar,
+        // firstName: person?.firstName,
+        // lastName: person?.lastName,
+        // avatar: person?.avatar,
         id: person?.id,
       };
 
@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   public async sendResetPasswordEmail(emailDto: EmailDto): Promise<void> {
-    const person: Person | null = await this.personService.findOne({
+    const person: User | null = await this.usersService.findOne({
       where: { email: emailDto.email },
     });
 
@@ -70,9 +70,9 @@ export class AuthService {
       const payload: AccessTokenPayload = {
         username: person?.username,
         email: person?.email,
-        firstName: person?.firstName,
-        lastName: person?.lastName,
-        avatar: person?.avatar,
+        // firstName: person?.firstName,
+        // lastName: person?.lastName,
+        // avatar: person?.avatar,
         id: person?.id,
       };
 
@@ -87,7 +87,7 @@ export class AuthService {
           from: 'no-reply@inventorie.com',
           subject: 'Reset Password',
           html: `
-        <p>Hey ${person.firstName || person.email},</p>
+        <p>Hey ${person.username || person.email},</p>
         <p>We heard that you forgot your password. Sorry about that!</p>
         <p>But don't worry! You can use the following link to reset your password:</p>
         <a href=${url}>Reset your password here</a>
@@ -108,7 +108,7 @@ export class AuthService {
     newPassword: string,
   ): Promise<AccessToken> {
     try {
-      const person: Person | null = await this.personService.findOne({
+      const person: User | null = await this.usersService.findOne({
         where: { username: user.username },
       });
       if (!person) {
@@ -122,9 +122,9 @@ export class AuthService {
       const payload: AccessTokenPayload = {
         username: updatedPerson?.username,
         email: updatedPerson?.email,
-        firstName: updatedPerson?.firstName,
-        lastName: updatedPerson?.lastName,
-        avatar: person?.avatar,
+        // firstName: updatedPerson?.firstName,
+        // lastName: updatedPerson?.lastName,
+        // avatar: person?.avatar,
         id: updatedPerson?.id,
       };
 

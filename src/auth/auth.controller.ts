@@ -21,6 +21,9 @@ import { ResetCredentialsDto } from './dto/reset-credentials.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AccessToken, AccessTokenPayload } from './models/access-token.model';
 
+interface RequestWithUser extends Request {
+  user: AccessTokenPayload;
+}
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -45,11 +48,11 @@ export class AuthController {
   @Post('reset-password')
   @UseGuards(JwtAuthGuard)
   public resetPassword(
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
     @Body() resetCredentialsDto: ResetCredentialsDto,
   ): Promise<AccessToken> {
     return this.authService.resetPassword(
-      <AccessTokenPayload>req.user,
+      req.user,
       resetCredentialsDto.password,
     );
   }
