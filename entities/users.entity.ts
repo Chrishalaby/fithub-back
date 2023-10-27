@@ -13,7 +13,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 const { CREATE, UPDATE } = CrudValidationGroups;
 @Entity()
-export class Person {
+export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
