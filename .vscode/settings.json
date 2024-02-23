@@ -1,4 +1,8 @@
 {
   "appService.defaultWebAppToDeploy": "undefined/subscriptions/69e22a9d-6382-4988-a10f-248aea7474b3/resourceGroups/fithubc/providers/Microsoft.Web/sites/fithubc",
-  "appService.deploySubpath": "."
+  "appService.deploySubpath": ".",
+  "appService.zipIgnorePattern": [
+    "node_modules{,/**}",
+    ".vscode{,/**}"
+  ]
 }
