@@ -5,8 +5,11 @@ import {
   Param,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from 'src/decorators/user.decorator';
 import { BundleDto, CreateBundleDto } from 'src/dto/create-bundle.dto';
 import { CreateSessionEventDto } from 'src/dto/create-session-event.dto';
@@ -91,5 +94,15 @@ export class TrainerProfileController {
   async getEventsByUserId(@User() user: UserDto) {
     const userId = user.id;
     return this.trainerProfileService.getEventsByTrainerId(userId);
+  }
+
+  @Post('upload-profile-picture')
+  @UseInterceptors(FileInterceptor('profilePicture'))
+  async uploadProfilePicture(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ imageUrl: string }> {
+    const imageUrl =
+      await this.trainerProfileService.uploadProfilePicture(file);
+    return { imageUrl };
   }
 }

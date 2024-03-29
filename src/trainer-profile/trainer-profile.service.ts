@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 import { BundleDto, CreateBundleDto } from 'src/dto/create-bundle.dto';
 import { CreateSessionEventDto } from 'src/dto/create-session-event.dto';
 import { TrainerProfileDto } from 'src/dto/trainer.dto';
@@ -8,7 +10,6 @@ import { Client, GhostClient } from 'src/entites/client.entity';
 import { SessionEvent } from 'src/entites/session-event.entity';
 import { Trainer } from 'src/entites/trainer.entity';
 import { Repository } from 'typeorm';
-
 @Injectable()
 export class TrainerProfileService {
   constructor(
@@ -281,5 +282,19 @@ export class TrainerProfileService {
 
     // Transform the raw results to include a single 'clientName' field
     return sessionEvents;
+  }
+
+  async uploadProfilePicture(file: Express.Multer.File): Promise<string> {
+    const uploadDir = 'uploads';
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const filename = `${Date.now()}-${file.originalname}`;
+    const filePath = path.join(uploadDir, filename);
+
+    await fs.writeFile(filePath, file.buffer);
+
+    const imageUrl = `http://localhost:3000/${uploadDir}/${filename}`;
+
+    return imageUrl;
   }
 }
