@@ -49,6 +49,9 @@ export class Trainer {
   @Column({ type: 'json', nullable: true })
   educationalBackground: any;
 
+  @Column({ nullable: true })
+  educationalLevel: string;
+
   @Column('simple-array', { nullable: true })
   certifications: string[];
 

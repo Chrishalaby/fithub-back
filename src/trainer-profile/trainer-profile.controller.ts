@@ -6,10 +6,11 @@ import {
   Post,
   Query,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { User } from 'src/decorators/user.decorator';
 import { BundleDto, CreateBundleDto } from 'src/dto/create-bundle.dto';
 import { CreateSessionEventDto } from 'src/dto/create-session-event.dto';
@@ -103,6 +104,16 @@ export class TrainerProfileController {
   ): Promise<{ imageUrl: string }> {
     const imageUrl =
       await this.trainerProfileService.uploadProfilePicture(file);
+    return { imageUrl };
+  }
+
+  @Post('upload-certifications')
+  @UseInterceptors(FilesInterceptor('certifications')) // Use FilesInterceptor for multiple files
+  async uploadCertifications(
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<{ imageUrl: string[] }> {
+    const imageUrl =
+      await this.trainerProfileService.uploadCertifications(files);
     return { imageUrl };
   }
 }

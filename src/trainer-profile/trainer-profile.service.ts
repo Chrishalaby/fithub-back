@@ -285,7 +285,7 @@ export class TrainerProfileService {
   }
 
   async uploadProfilePicture(file: Express.Multer.File): Promise<string> {
-    const uploadDir = 'uploads';
+    const uploadDir = 'uploads/profile-pictures';
     await fs.mkdir(uploadDir, { recursive: true });
 
     const filename = `${Date.now()}-${file.originalname}`;
@@ -296,5 +296,24 @@ export class TrainerProfileService {
     const imageUrl = `http://localhost:3000/${uploadDir}/${filename}`;
 
     return imageUrl;
+  }
+
+  async uploadCertifications(files: Express.Multer.File[]): Promise<string[]> {
+    const uploadDir = 'uploads/certifications';
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const imageUrls: string[] = [];
+
+    for (const file of files) {
+      const filename = `${Date.now()}-${file.originalname}`;
+      const filePath = path.join(uploadDir, filename);
+
+      await fs.writeFile(filePath, file.buffer);
+
+      const imageUrl = `http://localhost:3000/${uploadDir}/${filename}`;
+      imageUrls.push(imageUrl);
+    }
+
+    return imageUrls;
   }
 }
