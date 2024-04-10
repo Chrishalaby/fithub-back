@@ -104,4 +104,15 @@ export class OpenAiController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Get('subscription-status')
+  async getSubscriptionStatus(@Query('subscriptionId') subscriptionId: string) {
+    try {
+      const subscription =
+        await this.openAiService.retrieveSubscription(subscriptionId);
+      return { status: subscription.status };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

@@ -72,6 +72,7 @@ export class AuthService {
       trainerId: trainer ? trainer.id : undefined,
       userType,
       aiRequestToken: validatedUser.aiRequestToken,
+      subscriptionId: validatedUser.subscriptionId,
     };
     return {
       accessToken,

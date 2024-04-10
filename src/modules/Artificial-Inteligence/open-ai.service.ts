@@ -117,6 +117,10 @@ export class OpenAiService {
     return this.stripe.checkout.sessions.retrieve(sessionId);
   }
 
+  async retrieveSubscription(subscriptionId: string) {
+    return this.stripe.subscriptions.retrieve(subscriptionId);
+  }
+
   async updateUserSubscription(userId: number, subscriptionId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 

@@ -23,6 +23,7 @@ export class AuthController {
         email: user.email,
         userType: user.userType,
         aiRequestToken: user.aiRequestToken,
+        subscriptionId: user.subscriptionId,
       },
     };
   }

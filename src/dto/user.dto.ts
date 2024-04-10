@@ -5,4 +5,5 @@ export class UserDto {
   userType?: string;
   aiRequestToken: number;
   trainerId?: number;
+  subscriptionId?: string;
 }
