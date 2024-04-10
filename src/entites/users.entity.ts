@@ -30,4 +30,7 @@ export class Users {
 
   @Column({ type: 'integer', default: 0 })
   aiRequestToken: number;
+
+  @Column({ nullable: true })
+  subscriptionId: string;
 }

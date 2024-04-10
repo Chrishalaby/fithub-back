@@ -7,15 +7,17 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { User } from 'src/decorators/user.decorator';
 import { OptionsDTO } from 'src/dto/options.dto';
 import { UserDto } from 'src/dto/user.dto';
 import { WorkoutPlanTrainerDto } from 'src/dto/workoutPlanTrainerI.dto';
+import { JwtAuthGuard } from '../auth/local-auth.guard';
 import { OpenAiService } from './open-ai.service';
 
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('open-ai')
 export class OpenAiController {
   constructor(private readonly openAiService: OpenAiService) {}
@@ -71,13 +73,29 @@ export class OpenAiController {
   }
 
   @Get('session-status')
-  async getSessionStatus(@Query('session_id') sessionId: string) {
+  async getSessionStatus(
+    @Query('session_id') sessionId: string,
+    @User() user: UserDto,
+  ) {
+    const userId = user.id;
+
     if (!sessionId) {
       throw new HttpException('Session ID is required', HttpStatus.BAD_REQUEST);
     }
 
     try {
       const session = await this.openAiService.retrieveSession(sessionId);
+
+      if (
+        session.status === 'complete' &&
+        typeof session.subscription === 'string'
+      ) {
+        await this.openAiService.updateUserSubscription(
+          userId,
+          session.subscription,
+        );
+      }
+
       return {
         status: session.status,
         customer_email: session.customer_details?.email,
