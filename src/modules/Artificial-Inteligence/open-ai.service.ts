@@ -109,7 +109,7 @@ export class OpenAiService {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       ui_mode: 'embedded',
-      return_url: `${returnUrl}/success`,
+      return_url: returnUrl,
     });
   }
 

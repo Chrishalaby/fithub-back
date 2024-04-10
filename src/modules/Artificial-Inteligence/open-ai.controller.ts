@@ -59,11 +59,10 @@ export class OpenAiController {
         HttpStatus.BAD_REQUEST,
       );
     }
-
     try {
       const session = await this.openAiService.createCheckoutSession(
         priceId,
-        req.headers.origin as string,
+        `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       );
       return { clientSecret: session.client_secret }; // Return the clientSecret for the frontend to use
     } catch (error) {
