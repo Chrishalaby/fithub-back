@@ -1,7 +1,6 @@
+import { BlobServiceClient } from '@azure/storage-blob';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { promises as fs } from 'fs';
-import * as path from 'path';
 import { BundleDto, CreateBundleDto } from 'src/dto/create-bundle.dto';
 import { CreateSessionEventDto } from 'src/dto/create-session-event.dto';
 import { TrainerProfileDto } from 'src/dto/trainer.dto';
@@ -12,6 +11,8 @@ import { Trainer } from 'src/entites/trainer.entity';
 import { Repository } from 'typeorm';
 @Injectable()
 export class TrainerProfileService {
+  private blobServiceClient: BlobServiceClient;
+
   constructor(
     @InjectRepository(Trainer)
     private trainerRepository: Repository<Trainer>,
@@ -27,7 +28,11 @@ export class TrainerProfileService {
 
     @InjectRepository(SessionEvent)
     private sessionEventRepository: Repository<SessionEvent>,
-  ) {}
+  ) {
+    const connectionString = `DefaultEndpointsProtocol=https;AccountName=${process.env.AZURE_STORAGE_ACCOUNT_NAME};AccountKey=${process.env.AZURE_STORAGE_ACCOUNT_KEY};EndpointSuffix=core.windows.net`;
+    this.blobServiceClient =
+      BlobServiceClient.fromConnectionString(connectionString);
+  }
 
   async findTrainerByUserId(userId: number): Promise<Trainer> {
     const trainer = await this.trainerRepository.findOne({
@@ -284,36 +289,37 @@ export class TrainerProfileService {
     return sessionEvents;
   }
 
-  async uploadProfilePicture(file: Express.Multer.File): Promise<string> {
-    const uploadDir = 'uploads/profile-pictures';
-    await fs.mkdir(uploadDir, { recursive: true });
-
-    const filename = `${Date.now()}-${file.originalname}`;
-    const filePath = path.join(uploadDir, filename);
-
-    await fs.writeFile(filePath, file.buffer);
-
-    const imageUrl = `http://localhost:3000/${uploadDir}/${filename}`;
-
-    return imageUrl;
-  }
-
   async uploadCertifications(files: Express.Multer.File[]): Promise<string[]> {
-    const uploadDir = 'uploads/certifications';
-    await fs.mkdir(uploadDir, { recursive: true });
+    const containerClient =
+      this.blobServiceClient.getContainerClient('certifications');
+    await containerClient.createIfNotExists({ access: 'container' });
 
     const imageUrls: string[] = [];
 
     for (const file of files) {
-      const filename = `${Date.now()}-${file.originalname}`;
-      const filePath = path.join(uploadDir, filename);
+      const blobName = `${Date.now()}-${file.originalname}`;
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-      await fs.writeFile(filePath, file.buffer);
-
-      const imageUrl = `http://localhost:3000/${uploadDir}/${filename}`;
+      await blockBlobClient.uploadData(file.buffer);
+      const imageUrl = `${blockBlobClient.url}?${new Date().getTime()}`;
       imageUrls.push(imageUrl);
     }
 
     return imageUrls;
+  }
+
+  async uploadProfilePicture(file: Express.Multer.File): Promise<string> {
+    // Assuming 'profile-pictures' is the name of your container for profile pictures
+    const containerClient =
+      this.blobServiceClient.getContainerClient('profile-pictures');
+    await containerClient.createIfNotExists({ access: 'container' });
+
+    const blobName = `${Date.now()}-${file.originalname}`;
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    await blockBlobClient.uploadData(file.buffer);
+
+    const imageUrl = `${blockBlobClient.url}?${new Date().getTime()}`;
+    return imageUrl;
   }
 }

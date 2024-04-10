@@ -1,6 +1,5 @@
 .env
-.src/config/typeorm.config.json
-/src/config/typeorm.config.json
+/src/config/
 # compiled output
 /dist
 /node_modules

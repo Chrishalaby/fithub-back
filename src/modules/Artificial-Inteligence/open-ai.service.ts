@@ -4,12 +4,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import OpenAI from 'openai';
 import { Options } from 'src/entites/option.entity';
 import { Users } from 'src/entites/users.entity';
+import Stripe from 'stripe';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class OpenAiService {
   private openai: OpenAI;
-
+  private stripe: Stripe;
   constructor(
     @InjectRepository(Options)
     private optionsRepository: Repository<Options>,
@@ -23,6 +24,13 @@ export class OpenAiService {
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
       organization: this.configService.get<string>('OPENAI_ORG'),
     });
+
+    this.stripe = new Stripe(
+      'sk_test_51P1tkOCgNLrByVR9Tps2YF6KjUS8m3a8TPrxqk9aKR1jVgZvrr4cuhDDZ33nRfsmahSg4rAvoiQwEMpfyuAVPSlK00TRwtRLc5',
+      {
+        apiVersion: '2023-10-16',
+      },
+    );
   }
 
   async findAll(): Promise<Options[]> {
@@ -93,5 +101,19 @@ export class OpenAiService {
         throw error;
       }
     }
+  }
+
+  async createCheckoutSession(priceId: string, returnUrl: string) {
+    return this.stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: 'subscription',
+      ui_mode: 'embedded',
+      return_url: `${returnUrl}/success`,
+    });
+  }
+
+  async retrieveSession(sessionId: string) {
+    return this.stripe.checkout.sessions.retrieve(sessionId);
   }
 }
