@@ -53,7 +53,11 @@ export class OpenAiController {
   }
 
   @Post('/create-checkout-session')
-  async createSession(@Req() req: Request, @Body('priceId') priceId: string) {
+  async createSession(
+    @Req() req: Request,
+    @Body('priceId') priceId: string,
+    @Body('subscriptionType') subscriptionType: string,
+  ) {
     if (!priceId) {
       console.log('priceId didnt work');
       throw new HttpException(
@@ -65,6 +69,7 @@ export class OpenAiController {
       const session = await this.openAiService.createCheckoutSession(
         priceId,
         `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+        subscriptionType,
       );
       return { clientSecret: session.client_secret }; // Return the clientSecret for the frontend to use
     } catch (error) {
@@ -85,11 +90,19 @@ export class OpenAiController {
 
     try {
       const session = await this.openAiService.retrieveSession(sessionId);
+      console.log(session);
+      // Check if the session is complete and the mode is 'payment'
+      if (session.status === 'complete' && session.mode === 'payment') {
+        // Add 5 tokens to the user's account
+        await this.openAiService.addTokensToUser(userId, 5);
+      }
 
       if (
         session.status === 'complete' &&
-        typeof session.subscription === 'string'
+        session.mode === 'subscription' &&
+        session.subscription === 'string'
       ) {
+        // Update the user's subscription
         await this.openAiService.updateUserSubscription(
           userId,
           session.subscription,

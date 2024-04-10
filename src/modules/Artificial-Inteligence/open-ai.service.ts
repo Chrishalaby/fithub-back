@@ -103,11 +103,23 @@ export class OpenAiService {
     }
   }
 
-  async createCheckoutSession(priceId: string, returnUrl: string) {
+  async createCheckoutSession(
+    priceId: string,
+    returnUrl: string,
+    subscriptionType: string,
+  ) {
+    const mode: Stripe.Checkout.SessionCreateParams.Mode = [
+      'payment',
+      'subscription',
+      'setup',
+    ].includes(subscriptionType)
+      ? (subscriptionType as Stripe.Checkout.SessionCreateParams.Mode)
+      : 'payment'; // Default to 'payment' if an invalid subscriptionType is provided
+
     return this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: 'subscription',
+      mode: mode,
       ui_mode: 'embedded',
       return_url: returnUrl,
     });
@@ -126,6 +138,17 @@ export class OpenAiService {
 
     if (user) {
       user.subscriptionId = subscriptionId;
+      await this.userRepository.save(user);
+    }
+  }
+
+  async addTokensToUser(userId: number, tokensToAdd: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (user) {
+      user.aiRequestToken = user.aiRequestToken
+        ? user.aiRequestToken + tokensToAdd
+        : tokensToAdd;
+
       await this.userRepository.save(user);
     }
   }
