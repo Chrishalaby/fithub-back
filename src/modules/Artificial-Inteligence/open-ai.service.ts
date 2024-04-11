@@ -148,7 +148,6 @@ export class OpenAiService {
       user.aiRequestToken = user.aiRequestToken
         ? user.aiRequestToken + tokensToAdd
         : tokensToAdd;
-
       await this.userRepository.save(user);
     }
   }

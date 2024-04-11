@@ -90,22 +90,14 @@ export class OpenAiController {
 
     try {
       const session = await this.openAiService.retrieveSession(sessionId);
-      console.log(session);
       // Check if the session is complete and the mode is 'payment'
       if (session.status === 'complete' && session.mode === 'payment') {
         // Add 5 tokens to the user's account
         await this.openAiService.addTokensToUser(userId, 5);
-      }
-
-      if (
-        session.status === 'complete' &&
-        session.mode === 'subscription' &&
-        session.subscription === 'string'
-      ) {
-        // Update the user's subscription
+      } else {
         await this.openAiService.updateUserSubscription(
           userId,
-          session.subscription,
+          session.subscription as string,
         );
       }
 
