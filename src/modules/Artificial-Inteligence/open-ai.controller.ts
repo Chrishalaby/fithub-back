@@ -90,20 +90,26 @@ export class OpenAiController {
 
     try {
       const session = await this.openAiService.retrieveSession(sessionId);
-      // Check if the session is complete and the mode is 'payment'
+      let updatedData = {};
+
       if (session.status === 'complete' && session.mode === 'payment') {
-        // Add 5 tokens to the user's account
-        await this.openAiService.addTokensToUser(userId, 5);
+        // If payment is complete, add tokens and return token count
+        const tokens = await this.openAiService.addTokensToUser(userId, 5);
+        updatedData = { aiRequestToken: tokens };
       } else {
-        await this.openAiService.updateUserSubscription(
+        // If it's a subscription update, return new subscription ID
+        const subscriptionId = await this.openAiService.updateUserSubscription(
           userId,
           session.subscription as string,
         );
+        updatedData = { subscriptionId };
       }
 
+      // Return session data along with any updated user data
       return {
         status: session.status,
         customer_email: session.customer_details?.email,
+        ...updatedData,
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

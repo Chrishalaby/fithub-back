@@ -133,22 +133,28 @@ export class OpenAiService {
     return this.stripe.subscriptions.retrieve(subscriptionId);
   }
 
-  async updateUserSubscription(userId: number, subscriptionId: string) {
+  async updateUserSubscription(
+    userId: number,
+    subscriptionId: string,
+  ): Promise<string> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-
     if (user) {
       user.subscriptionId = subscriptionId;
       await this.userRepository.save(user);
+      return user.subscriptionId; // Return updated subscription ID
     }
+    return 'error updating subscription ID';
   }
 
-  async addTokensToUser(userId: number, tokensToAdd: number) {
+  async addTokensToUser(userId: number, tokensToAdd: number): Promise<number> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user) {
       user.aiRequestToken = user.aiRequestToken
         ? user.aiRequestToken + tokensToAdd
         : tokensToAdd;
       await this.userRepository.save(user);
+      return user.aiRequestToken; // Return updated token count
     }
+    return 0;
   }
 }
